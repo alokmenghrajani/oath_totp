@@ -1,6 +1,7 @@
-oath_totp
-=========
-A piece of code to demonstrate how to use TOTP in Opa.
+OATH TOTP in Opa
+================
+OATH is a standard for two factor authentication (i.e. RSA thingy which generates a unique code every
+minute). The purpose of this code is to demonstrate how to implement things in Opa.
 
 Note: if you are going to use this in a real system, you
 might want to keep track of which tokens was last used
@@ -15,5 +16,5 @@ http://www.opensource.org/licenses/mit-license.php
 
 links
 =====
-http://tools.ietf.org/html/rfc6238
-http://opalang.org/
+- http://tools.ietf.org/html/rfc6238
+- http://opalang.org/
