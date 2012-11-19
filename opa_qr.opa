@@ -4,50 +4,75 @@ import stdlib.themes.bootstrap
 /**
  * A piece of code to demonstrate how to use TOTP in Opa.
  *
- * Note: for added security, it might be a good idea
- * to keep track of which value was last used for each
- * token (i.e. synchronize clocks).
+ * Note: if you are going to use this in a real system, you might want
+ * to keep track of which tokens was last used (i.e. synchronize clocks)
  *
  * @author Alok Menghrajani <alok@fb.com>
+ * 
+ * License
+ * http://www.opensource.org/licenses/mit-license.php
  */
 
+// for now, token is a simple type. In the future, it might make sense
+// to define token as an abstract type and keep all token manipulation
+// code in a module (i.e. encapsulate the data).
+// we also need to make sure that we never leak the token in js!
 type token =
   {
     binary key,
     int interval
   }
 
+// i'm lazy to figure out how to append an element to an intmap, so
+// i'm just going to keep track of next_id.
 database opa_qr {
   int /next_id = 0
   intmap(token) /tokens
 }
 
+// networks help keep the code clean. They also help have nicer demos.
 network_tokens = Network.network(int) (Network.cloud("tokens"))
 
+/**
+ * Called when the page is loaded.
+ */
 function ready(_) {
   render_tokens(0)
   gen_qr()
 }
 
+/**
+ * Creates a new qr code. Uses the Qrcode binding.
+ */
 function gen_qr() {
   r = Random.string(10) // todo: improve this
   b32 = Base32.encode(binary_of_string(r))
   b64 = Crypto.Base64.encode(binary_of_string(r))
 
-  t = "otpauth://totp/alok@admin.ch?secret={b32}"
+  // demo is the username. You should use the actual username here.
+  t = "otpauth://totp/demo?secret={b32}"
   x = Qrcode.get_code(t)
   Dom.set_attribute_unsafe(#qr_output, "src", x)
 
   // make the output nicer
+  // TODO: i should not hardcode offsets
   s = "{String.substring(0, 4, b32)}-{String.substring(4, 4, b32)}-{String.substring(8, 4, b32)}-{String.substring(12, 4, b32)}"
   #b32_output = s
   #b64_output = b64
 }
 
+/**
+ * The stdlib's floor returns a float. I find this annoying, hope
+ * someone fixes things in the future...
+ */
 function int floor2(float n) {
   Int.of_float(Math.floor(n))
 }
 
+/**
+ * Recusrive function used to xor every byte in data with byte.
+ * Called from hash_hmac_sha1. 
+ */
 function hash_hmac_xor(binary data, int byte, binary out, int offset) {
   if (offset < Binary.length(data)) {
     t = Binary.get_uint8(data, offset)
@@ -59,11 +84,21 @@ function hash_hmac_xor(binary data, int byte, binary out, int offset) {
   }
 }
 
+/**
+ * The stdlib sha1 code has a bug and wasn't trimming data.
+ *
+ * I believe the bug is now fixed and this is no longer needed.
+ */
 function binary sha1(binary data) {
   Binary.trim(data)
   Crypto.Hash.sha1(data)
 }
 
+/**
+ * The stdlib hash_hmac did not support binary keys.
+ *
+ * I believe the bug is now fixed and this is no longer needed.
+ */
 function binary hash_hmac_sha1(binary key, binary message) {
   block_size = 64
   key = if (Binary.length(key) > block_size) {
@@ -89,6 +124,9 @@ function binary hash_hmac_sha1(binary key, binary message) {
   sha1(o_key_pad)
 }
 
+/**
+ * Validates #validation_input by checking every token.
+ */
 function validation_do(_) {
   input = Int.of_string(Dom.get_value(#validation_input))
   time = Date.in_milliseconds(Date.now())
@@ -121,6 +159,12 @@ function validation_do(_) {
   Dom.set_value(#validation_input, "")
 }
 
+/**
+ * Recursively validate a token by looking at the time offsets from
+ * t1 to t2.
+ *
+ * Returns true if the input is correct, false otherwise.
+ */
 function bool validation_rec(int input, binary secret, t1, t2) {
   data = Binary.create(0)
   Binary.add_uint64_be(data, Int64.of_int(t1))
@@ -151,11 +195,17 @@ function bool validation_rec(int input, binary secret, t1, t2) {
   }
 }
 
+/**
+ * Removes a token from the db.
+ */
 function remove_token(int id) {
   Db.remove(@/opa_qr/tokens[id])
   Network.broadcast(0, network_tokens)
 }
 
+/**
+ * Renders the list of tokens in the db.
+ */
 function render_tokens(_) {
   #tokens_list = if (IntMap.is_empty(/opa_qr/tokens)) {
     <>No tokens</>;
@@ -179,6 +229,11 @@ function render_tokens(_) {
   }
 }
 
+/**
+ * Adds a software based token.
+ *
+ * Note: the 30 seconds interval is hardcoded.
+ */
 function add_soft_token(_) {
   v = Crypto.Base64.decode(Dom.get_text(#b64_output))
   token = {key: v, interval: 30}
@@ -190,6 +245,11 @@ function add_soft_token(_) {
   Network.broadcast(0, network_tokens)
 }
 
+/**
+ * Adds a physical token.
+ *
+ * Note: the 60 seconds interval is hardcoded, because that's how my token works.
+ */
 function add_physical_token(_) {
   v = Crypto.Base64.decode(Dom.get_value(#input_key))
   if (Binary.length(v) != 20) {
@@ -208,6 +268,9 @@ function add_physical_token(_) {
   }
 }
 
+/**
+ * Main and only page rendering code.
+ */
 function page() {
   Network.add_callback(render_tokens, network_tokens)
 
