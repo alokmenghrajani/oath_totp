@@ -25,6 +25,11 @@ links
 
 screenshots
 ===========
+demo app:
 ![](https://raw.github.com/alokmenghrajani/oath_totp/master/screenshot.png "")
+
+google authenticator:
 ![](https://raw.github.com/alokmenghrajani/oath_totp/master/google_authenticator.jpg "")
+
+otp c200:
 ![](https://raw.github.com/alokmenghrajani/oath_totp/master/otp_c200.png "")
