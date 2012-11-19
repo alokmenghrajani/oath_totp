@@ -21,3 +21,4 @@ links
 - http://tools.ietf.org/html/rfc6238
 - http://opalang.org/
 - http://code.google.com/p/google-authenticator/
+- http://www.gooze.eu/otp-c200-token-time-based-h3-casing-1-unit
