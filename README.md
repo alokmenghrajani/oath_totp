@@ -6,7 +6,7 @@ Note: if you are going to use this in a real system, you
 might want to keep track of which tokens was last used
 (i.e. synchronize clocks)
 
-![](http://www.pixlpaste.com/R2k3Au "")
+![](http://pixlpaste.s3-website-us-east-1.amazonaws.com/pixels/R2k3Au "")
 
 license
 =======
