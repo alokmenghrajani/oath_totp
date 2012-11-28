@@ -47,9 +47,7 @@ module Base32 {
       // count number of = at the end of the string
       if (encoded_len > 0) {
         n = encoded_len - get_num_padding_rec(data, 0)
-        if (n > 0) {
-          Binary.resize(t, n * 5 / 8)
-        }
+        Binary.resize(t, n * 5 / 8)
       }
       {some: t}
     }
