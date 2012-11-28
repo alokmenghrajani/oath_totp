@@ -45,10 +45,9 @@ module Base32 {
       Binary.trim(t)
 
       // count number of = at the end of the string
-      if (encoded_len > 0) {
-        n = encoded_len - get_num_padding_rec(data, 0)
-        Binary.resize(t, n * 5 / 8)
-      }
+      n = encoded_len - get_num_padding_rec(data, 0)
+      Binary.resize(t, n * 5 / 8)
+
       {some: t}
     }
   }
@@ -138,28 +137,33 @@ module Base32 {
     }
   }
 
-  private function get_num_padding_rec(string data, int n) {
-    if (String.substring(String.length(data)-1-n, 1, data) == "=") {
-      get_num_padding_rec(data, n+1)
+  private function get_num_padding_rec(string data, int r) {
+    if (r == String.length(data)) {
+      r;
+    } else if (String.substring(String.length(data)-1-r, 1, data) == "=") {
+      get_num_padding_rec(data, r+1)
     } else {
-      n;
+      r;
     }
   }
 
   /**
    * Checks if a string contains all valid characters by
    * folding over each character.
-   *
-   * TODO: check that = is only at the end, max 6 of them
    */
   private function is_valid(string data) {
-    String.fold(
-      function(string c, r) {
-        r && Option.is_some(char_to_int(c))
-      },
-      data,
-      true
-    )
+    n = get_num_padding_rec(data, 0)
+    if ((n == 2) || (n==5) || (n>6)) {
+      false;
+    } else {
+      String.fold(
+        function(string c, r) {
+          r && Option.is_some(char_to_int(c)) && (c != "=")
+        },
+        String.substring(0, String.length(data) - n, data),
+        true
+      )
+    }
   }
 }
 
