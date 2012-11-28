@@ -6,43 +6,43 @@
  * @author Alok Menghrajani
  */
 
+function expect_encode(Test.result res, string test_name, string s, string expected) {
+  Test.expect_equals(res, test_name, Base32.encode(binary_of_string(s)), expected)
+}
+
+function expect_decode(Test.result res, string test_name, string s, string expected) {
+  match(Base32.decode(s)) {
+    case {none}:
+      extra_message = "(expecting {expected}, got none)"
+      Test.fail(res, test_name, extra_message)
+    case {~some}:
+      Test.expect_equals(res, test_name, string_of_binary(some), expected)
+  }
+}
+
 function run_tests() {
   t = Test.begin()
 
-  t = Test.expect_equals(t, "empty string",
-    Base32.encode(binary_of_string("")),
-    ""
-  )
+  t = expect_encode(t, "empty string", "", "")
+  t = expect_decode(t, "empty string", "", "")
 
-  t = Test.expect_equals(t, "one character",
-    Base32.encode(binary_of_string("f")),
-    "MY======"
-  )
+  t = expect_encode(t, "one character", "f", "MY======")
+  t = expect_decode(t, "one character", "MY======", "f")
 
-  t = Test.expect_equals(t, "two characters",
-    Base32.encode(binary_of_string("fo")),
-    "MZXQ===="
-  )
+  t = expect_encode(t, "two characters", "fo", "MZXQ====")
+  t = expect_decode(t, "two characters", "MZXQ====", "fo")
 
-  t = Test.expect_equals(t, "three characters",
-    Base32.encode(binary_of_string("foo")),
-    "MZXW6==="
-  )
+  t = expect_encode(t, "three characters", "foo", "MZXW6===")
+  t = expect_decode(t, "three characters", "MZXW6===", "foo")
 
-  t = Test.expect_equals(t, "four characters",
-    Base32.encode(binary_of_string("foob")),
-    "MZXW6YQ="
-  )
+  t = expect_encode(t, "four characters", "foob", "MZXW6YQ=")
+  t = expect_decode(t, "four characters", "MZXW6YQ=", "foob")
 
-  t = Test.expect_equals(t, "five characters",
-    Base32.encode(binary_of_string("fooba")),
-    "MZXW6YTB"
-  )
+  t = expect_encode(t, "five characters", "fooba", "MZXW6YTB")
+  t = expect_decode(t, "five characters", "MZXW6YTB", "fooba")
 
-  t = Test.expect_equals(t, "six characters",
-    Base32.encode(binary_of_string("foobar")),
-    "MZXW6YTBOI======"
-  )
+  t = expect_encode(t, "six characters", "foobar", "MZXW6YTBOI======")
+  t = expect_decode(t, "six characters", "MZXW6YTBOI======", "foobar")
 
   Test.end(t)
 }

@@ -49,14 +49,14 @@ module Test {
   }
 
   function pass(Test.result res, string test_name) {
-    prerrln("{_fill(test_name, 40)}: PASS")
+    prerrln("{_fill(test_name, 30)}: PASS")
     {res with passed:List.cons(test_name, res.passed)}
   }
 
   function fail(Test.result res, string test_name, string extra_message) {
     right = ": FAIL {extra_message}"
-    right = _fill(right, 40)
-    prerrln("{_fill(test_name, 40)}{right}")
+    right = _fill(right, 50)
+    prerrln("{_fill(test_name, 30)}{right}")
     {res with failed:List.cons(test_name, res.failed)}
   }
 
