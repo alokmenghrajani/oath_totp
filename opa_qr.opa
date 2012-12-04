@@ -8,7 +8,7 @@ import stdlib.themes.bootstrap
  * to keep track of which tokens was last used (i.e. synchronize clocks)
  *
  * @author Alok Menghrajani <alok@fb.com>
- * 
+ *
  * License
  * http://www.opensource.org/licenses/mit-license.php
  */
@@ -55,10 +55,28 @@ function gen_qr() {
   Dom.set_attribute_unsafe(#qr_output, "src", x)
 
   // make the output nicer
-  // TODO: i should not hardcode offsets
-  s = "{String.substring(0, 4, b32)}-{String.substring(4, 4, b32)}-{String.substring(8, 4, b32)}-{String.substring(12, 4, b32)}"
+  s = String.of_list(function(e){e}, "-", str_chunk(b32, 4))
   #b32_output = s
   #b64_output = b64
+}
+
+/**
+ * Splits a string into chunks of size chunk_size
+ *
+ * If the string's length is not a multiple of n, the last element
+ * will be smaller than n.
+ */
+function list(string) str_chunk(string input, int chunk_size) {
+  recursive function list(string) f(string input, list(string) r) {
+    len = String.length(input)
+    if (len == 0) {
+      r;
+    } else {
+      n = Int.min(len, chunk_size)
+      f(String.substring(n, len - n, input), List.cons(String.substring(0, n, input), r))
+    }
+  }
+  List.rev(f(input, []))
 }
 
 /**
@@ -71,7 +89,7 @@ function int floor2(float n) {
 
 /**
  * Recusrive function used to xor every byte in data with byte.
- * Called from hash_hmac_sha1. 
+ * Called from hash_hmac_sha1.
  */
 function hash_hmac_xor(binary data, int byte, binary out, int offset) {
   if (offset < Binary.length(data)) {
