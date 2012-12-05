@@ -103,46 +103,6 @@ function hash_hmac_xor(binary data, int byte, binary out, int offset) {
 }
 
 /**
- * The stdlib sha1 code has a bug and wasn't trimming data.
- *
- * I believe the bug is now fixed and this is no longer needed.
- */
-function binary sha1(binary data) {
-  Binary.trim(data)
-  Crypto.Hash.sha1(data)
-}
-
-/**
- * The stdlib hash_hmac did not support binary keys.
- *
- * I believe the bug is now fixed and this is no longer needed.
- */
-function binary hash_hmac_sha1(binary key, binary message) {
-  block_size = 64
-  key = if (Binary.length(key) > block_size) {
-    sha1(key)
-  } else {
-    n_padding = block_size - Binary.length(key)
-    Binary.add_fill(key, n_padding, 0)
-    key
-  }
-
-  o_key_pad = Binary.create(0)
-  hash_hmac_xor(key, 0x5c, o_key_pad, 0)
-  o_key_pad = Binary.get_binary(o_key_pad, 0, block_size)
-
-  i_key_pad = Binary.create(0)
-  hash_hmac_xor(key, 0x36, i_key_pad, 0)
-  i_key_pad = Binary.get_binary(i_key_pad, 0, block_size)
-
-  Binary.add_binary(i_key_pad, message)
-  h1 = sha1(i_key_pad)
-
-  Binary.add_binary(o_key_pad, h1)
-  sha1(o_key_pad)
-}
-
-/**
  * Validates #validation_input by checking every token.
  */
 function validation_do(_) {
@@ -187,7 +147,7 @@ function bool validation_rec(int input, binary secret, t1, t2) {
   data = Binary.create(0)
   Binary.add_uint64_be(data, Int64.of_int(t1))
 
-  hash = hash_hmac_sha1(secret, data)
+  hash = Crypto.HMAC.sha1(secret, data)
 
   offset = Bitwise.land(Binary.get_uint8(hash, 19), 0x0f)
   e1 = Bitwise.land(Binary.get_uint8(hash, offset), 0x7f)
